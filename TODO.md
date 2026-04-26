@@ -37,3 +37,19 @@
 - [ ] Run `docker-compose up --build` (Docker not installed on this machine — run locally)
 - [ ] Commit with message: "Day 11 - Reached 80% coverage with Testcontainers and Repository tests"
 
+## Day 12 — Docker Finalization & Swagger Docs
+- [x] Create `.env` file with all environment variables
+- [x] Update `docker-compose.yml` with `env_file`, healthchecks, `depends_on` conditions, shared network
+- [x] Create `frontend/Dockerfile` (React multi-stage build)
+- [x] Create `frontend/package.json`
+- [x] Create `frontend/src/App.js` and `frontend/src/index.js`
+- [x] Add `@Operation` and `@ApiResponse` annotations to `PolicyController` (all 6 methods)
+- [x] Add `@Operation` and `@ApiResponse` annotations to `AuthController` (all 3 methods)
+- [x] Add `@Schema` annotations with examples to `Policy` entity
+- [x] Add `@Schema` DTOs (`RegisterRequest`, `LoginRequest`, `RefreshRequest`, `TokenResponse`, `AuthResponse`, `ErrorResponse`) to `AuthController`
+- [x] Add `@Schema` DTOs (`PolicyPageResponse`, `PolicyStatsResponse`) to `PolicyController`
+- [x] Update `OpenApiConfig.java` with JWT bearer token security scheme
+- [ ] Verify Swagger UI at `http://localhost:8080/swagger-ui/index.html` (run locally)
+- [ ] Verify Docker Compose starts all 5 services with `docker-compose up --build` (run locally)
+- [ ] Commit with message: "Day 12 - Finalized docker-compose with healthchecks and added Swagger documentation"
+
