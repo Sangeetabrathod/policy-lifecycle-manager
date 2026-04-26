@@ -1,11 +1,15 @@
 package com.internship.tool.aspect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internship.tool.entity.AuditLog;
 import com.internship.tool.entity.Policy;
 import com.internship.tool.repository.AuditRepository;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
+import com.internship.tool.repository.PolicyRepository;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,38 +22,63 @@ import java.time.LocalDateTime;
 @Component
 public class AuditAspect {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuditAspect.class);
+
     @Autowired
     private AuditRepository auditRepository;
 
+    @Autowired
+    private PolicyRepository policyRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     /**
-     * Intercepts all methods in PolicyController after they return successfully.
-     * Creates an audit log entry for create, update, and delete operations.
+     * Intercepts all methods in PolicyController to create audit log entries.
+     * Captures old and new values as JSON for create, update, and delete operations.
      */
-    @AfterReturning(pointcut = "execution(* com.internship.tool.controller.PolicyController.*(..))", returning = "result")
-    public void auditPolicyAction(JoinPoint joinPoint, Object result) {
+    @Around("execution(* com.internship.tool.controller.PolicyController.*(..))")
+    public Object auditPolicyAction(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
 
         String action = null;
         Long entityId = null;
+        String oldValue = null;
+        String newValue = null;
 
+        // Capture old state before proceeding
+        if ("updatePolicy".equals(methodName) && args.length > 0 && args[0] instanceof Long id) {
+            entityId = id;
+            oldValue = serializePolicy(policyRepository.findById(id).orElse(null));
+        } else if ("softDeletePolicy".equals(methodName) && args.length > 0 && args[0] instanceof Long id) {
+            entityId = id;
+            oldValue = serializePolicy(policyRepository.findById(id).orElse(null));
+        }
+
+        // Proceed with the actual method
+        Object result = joinPoint.proceed();
+
+        // Determine action and capture new state
         if ("createPolicy".equals(methodName)) {
             action = "POLICY_CREATED";
             entityId = extractPolicyIdFromResult(result);
+            newValue = serializePolicy(extractPolicyFromResult(result));
         } else if ("updatePolicy".equals(methodName)) {
             action = "POLICY_UPDATED";
-            entityId = extractPolicyIdFromResult(result);
+            if (entityId == null) {
+                entityId = extractPolicyIdFromResult(result);
+            }
+            newValue = serializePolicy(extractPolicyFromResult(result));
+        } else if ("softDeletePolicy".equals(methodName)) {
+            action = "POLICY_DELETED";
             if (entityId == null && args.length > 0 && args[0] instanceof Long) {
                 entityId = (Long) args[0];
             }
-        } else if ("softDeletePolicy".equals(methodName)) {
-            action = "POLICY_DELETED";
-            if (args.length > 0 && args[0] instanceof Long) {
-                entityId = (Long) args[0];
-            }
+            newValue = serializePolicy(extractPolicyFromResult(result));
         } else {
             // Skip read-only / search / stats methods
-            return;
+            return result;
         }
 
         String changedBy = getCurrentUsername();
@@ -60,15 +89,37 @@ public class AuditAspect {
         log.setAction(action);
         log.setChangedBy(changedBy);
         log.setChangeDate(LocalDateTime.now());
+        log.setOldValue(oldValue);
+        log.setNewValue(newValue);
 
         auditRepository.save(log);
+        logger.info("Audit log saved: action={}, entityId={}, changedBy={}", action, entityId, changedBy);
+
+        return result;
+    }
+
+    private String serializePolicy(Policy policy) {
+        if (policy == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(policy);
+        } catch (Exception e) {
+            logger.warn("Failed to serialize policy for audit log", e);
+            return "{\"error\": \"serialization_failed\"}";
+        }
+    }
+
+    private Policy extractPolicyFromResult(Object result) {
+        if (result instanceof ResponseEntity<?> response && response.getBody() instanceof Policy policy) {
+            return policy;
+        }
+        return null;
     }
 
     private Long extractPolicyIdFromResult(Object result) {
-        if (result instanceof ResponseEntity<?> response && response.getBody() instanceof Policy policy) {
-            return policy.getId();
-        }
-        return null;
+        Policy policy = extractPolicyFromResult(result);
+        return policy != null ? policy.getId() : null;
     }
 
     private String getCurrentUsername() {

@@ -17,12 +17,13 @@ import java.util.Optional;
 public interface PolicyRepository extends JpaRepository<Policy, Long> {
 
        /**
-        * Searches policies by a keyword that matches either the policy name or the
+        * Searches non-deleted policies by a keyword that matches either the policy name or the
         * policy holder.
         * Uses a case-insensitive partial match.
         */
-       @Query("SELECT p FROM Policy p WHERE LOWER(p.policyName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-                     "OR LOWER(p.policyHolder) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+       @Query("SELECT p FROM Policy p WHERE p.isDeleted = false AND (" +
+                     "LOWER(p.policyName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+                     "OR LOWER(p.policyHolder) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
        List<Policy> searchByNameOrHolder(@Param("searchTerm") String searchTerm);
 
        /**

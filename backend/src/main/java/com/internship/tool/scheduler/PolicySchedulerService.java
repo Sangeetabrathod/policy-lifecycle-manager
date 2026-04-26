@@ -2,6 +2,8 @@ package com.internship.tool.scheduler;
 
 import com.internship.tool.entity.Policy;
 import com.internship.tool.repository.PolicyRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Service
 public class PolicySchedulerService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PolicySchedulerService.class);
 
     @Autowired
     private PolicyRepository policyRepository;
@@ -25,11 +29,11 @@ public class PolicySchedulerService {
         List<Policy> overduePolicies = policyRepository.findByStatusNotAndExpiryDateBefore("COMPLETED", today);
 
         if (overduePolicies.isEmpty()) {
-            System.out.println("[Overdue Check] No overdue policies found.");
+            logger.info("[Overdue Check] No overdue policies found.");
         } else {
-            System.out.println("[Overdue Check] Found " + overduePolicies.size() + " overdue policy(ies):");
+            logger.info("[Overdue Check] Found {} overdue policy(ies):", overduePolicies.size());
             overduePolicies.forEach(
-                    p -> System.out.println("  - " + p.getPolicyName() + " (expiry_date: " + p.getExpiryDate() + ")"));
+                    p -> logger.info("  - {} (expiry_date: {})", p.getPolicyName(), p.getExpiryDate()));
         }
     }
 
@@ -43,11 +47,11 @@ public class PolicySchedulerService {
         List<Policy> expiringSoon = policyRepository.findByExpiryDate(sevenDaysFromNow);
 
         if (expiringSoon.isEmpty()) {
-            System.out.println("[Expiring Soon Check] No policies expiring on " + sevenDaysFromNow + ".");
+            logger.info("[Expiring Soon Check] No policies expiring on {}.", sevenDaysFromNow);
         } else {
-            System.out.println("[Expiring Soon Check] Found " + expiringSoon.size() + " policy(ies) expiring on "
-                    + sevenDaysFromNow + ":");
-            expiringSoon.forEach(p -> System.out.println("  - " + p.getPolicyName()));
+            logger.info("[Expiring Soon Check] Found {} policy(ies) expiring on {}:",
+                    expiringSoon.size(), sevenDaysFromNow);
+            expiringSoon.forEach(p -> logger.info("  - {}", p.getPolicyName()));
         }
     }
 
@@ -60,10 +64,10 @@ public class PolicySchedulerService {
         long activePolicies = policyRepository.countByStatus("Active");
         long pendingPolicies = policyRepository.countByStatus("Pending");
 
-        System.out.println("===== Weekly Policy Summary =====");
-        System.out.println("Total Policies : " + totalPolicies);
-        System.out.println("Active Policies: " + activePolicies);
-        System.out.println("Pending Policies: " + pendingPolicies);
-        System.out.println("=================================");
+        logger.info("===== Weekly Policy Summary =====");
+        logger.info("Total Policies : {}", totalPolicies);
+        logger.info("Active Policies: {}", activePolicies);
+        logger.info("Pending Policies: {}", pendingPolicies);
+        logger.info("=================================");
     }
 }
