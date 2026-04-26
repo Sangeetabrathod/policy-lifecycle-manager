@@ -44,6 +44,15 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
        long countByStatus(String status);
 
        /**
+        * Demonstrates N+1 prevention using JOIN FETCH pattern.
+        * If Policy had related entities (e.g., @ManyToOne User), this query would
+        * fetch them in a single SQL statement instead of N+1 selects.
+        * Example: SELECT p FROM Policy p LEFT JOIN FETCH p.relatedEntity WHERE p.isDeleted = false
+        */
+       @Query("SELECT p FROM Policy p WHERE p.isDeleted = false")
+       List<Policy> findAllActivePoliciesWithDetails();
+
+       /**
         * Finds policies with a status other than the given one whose expiry_date is
         * before the provided date.
         * Used by the overdue reminder scheduler.

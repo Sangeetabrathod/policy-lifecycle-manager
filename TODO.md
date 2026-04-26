@@ -53,14 +53,11 @@
 - [ ] Verify Docker Compose starts all 5 services with `docker-compose up --build` (run locally)
 - [ ] Commit with message: "Day 12 - Finalized docker-compose with healthchecks and added Swagger documentation"
 
-## Day 13 — Full System Test & Bug Fixing
-- [x] Fix `AuditAspect.java` — changed from `@AfterReturning` to `@Around` to capture `oldValue` and `newValue` JSON in audit logs
-- [x] Fix `PolicySchedulerService.java` — replaced `System.out.println` with SLF4J `Logger` for proper Docker log capture
-- [x] Fix `SecurityConfig.java` — added CORS configuration bean to allow frontend access from `localhost` and `localhost:3000`
-- [x] Fix `application.yml` — added Redis config, Jackson date serialization, and structured logging pattern
-- [x] Fix `PolicyRepository.java` — `searchByNameOrHolder` now excludes `is_deleted=true` records (P2 data integrity bug)
-- [x] Create `QA_CHECKLIST.md` with 10 test cases (5 P1 crash tests, 5 P2 integrity tests), 5 edge cases, Docker config checklist, and manual scheduler test instructions
-- [ ] Run full clean slate test: `docker-compose down -v && docker-compose up --build` (run locally)
-- [ ] Execute all 10 QA checklist items and mark status
-- [ ] Commit with message: "Day 13 - Completed full system test and resolved all P1/P2 backend bugs"
+## Day 14 — Data Seeding & Performance Tuning
+- [x] Create `DataSeeder.java` with `@EventListener(ApplicationReadyEvent.class)` — seeds 32 realistic policies (Active, Pending, COMPLETED, DELETED) with idempotency check
+- [x] Update `V5__performance_indexes.sql` — added `idx_policies_status_expiry` composite index and `idx_policies_active_not_deleted` partial index
+- [x] Update `PolicyRepository.java` — added `findAllActivePoliciesWithDetails()` demonstrating `JOIN FETCH` N+1 prevention pattern
+- [ ] Verify 30+ records appear after `docker compose down -v && docker compose up --build` (run locally)
+- [ ] Verify search queries use indexes via `EXPLAIN ANALYZE` (run locally)
+- [ ] Commit with message: "Day 14 - Implemented 30-record DataSeeder and optimized JPA query performance"
 
