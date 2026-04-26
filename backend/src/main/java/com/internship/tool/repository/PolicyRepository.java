@@ -1,6 +1,8 @@
 package com.internship.tool.repository;
 
 import com.internship.tool.entity.Policy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PolicyRepository extends JpaRepository<Policy, Long> {
@@ -51,4 +54,24 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
         * Used by the advance alert scheduler.
         */
        List<Policy> findByExpiryDate(LocalDate expiryDate);
+
+       /**
+        * Paginated list of non-deleted policies.
+        */
+       Page<Policy> findByIsDeletedFalse(Pageable pageable);
+
+       /**
+        * Finds a non-deleted policy by ID.
+        */
+       Optional<Policy> findByIdAndIsDeletedFalse(Long id);
+
+       /**
+        * Counts non-deleted policies.
+        */
+       long countByIsDeletedFalse();
+
+       /**
+        * Counts policies by status, excluding deleted ones.
+        */
+       long countByStatusAndIsDeletedFalse(String status);
 }

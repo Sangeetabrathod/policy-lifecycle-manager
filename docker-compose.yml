@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: policy-postgres
+    environment:
+      POSTGRES_DB: policydb
+      POSTGRES_USER: policyuser
+      POSTGRES_PASSWORD: policypass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U policyuser -d policydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./backend
+    container_name: policy-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/policydb
+      SPRING_DATASOURCE_USERNAME: policyuser
+      SPRING_DATASOURCE_PASSWORD: policypass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
