@@ -1,50 +1,48 @@
-# Day 16 — Documentation & Presentation Prep
+# Day 17 — Demo Rehearsal & Slide Prep
 
 ## Deliverables Checklist
-- [x] README.md complete with setup instructions and ASCII architecture diagram
-- [x] .env.example with all environment variables documented
-- [x] Zero P1/P2 bugs — all remaining critical/data errors fixed
-- [x] 4 security talking points prepared for demo
-- [ ] Git commit & push to update PR #3
+- [x] 3 opening slides created (Problem Statement, Architecture, Demo Flow)
+- [x] 90-second verbal script refined with timing blocks
+- [x] 3 public speaking tips applied to RBAC/Audit Logging segment
+- [x] 20-second architecture summary memorized
+- [x] Q&A cheat sheet prepared for Docker health checks & Flyway migrations
+- [ ] Team dry run with stopwatch — identify transition gaps
+- [ ] Fix any rehearsal issues (data loading, awkward handoffs)
+- [ ] Re-test all 5 demo scenarios after fixes
+- [ ] Git commit & push Day 17 updates
 
 ## Implementation Steps
 
-### Phase 1 — Documentation
-- [x] Create `.env.example` (all vars from docker-compose.yml + application.yml)
-- [x] Rewrite root `README.md`:
-  - [x] Project overview
-  - [x] ASCII architecture diagram
-  - [x] Prerequisites section
-  - [x] Environment Variables reference table
-  - [x] Local dev & Docker setup instructions
-  - [x] API quick reference
-  - [x] Security talking points (4 bullets)
-  - [x] Known Issues section
-  - [x] 90-second demo script (Security & Infrastructure)
+### Phase 1 — Presentation Slides
+- [x] Slide 1: The Problem Statement (20 seconds)
+- [x] Slide 2: The Architecture — ASCII diagram from README (20 seconds)
+- [x] Slide 3: The Demo Flow (20 seconds)
+- [x] Constraint verified: 3 slides = 1 minute total
 
-### Phase 2 — Final Bug Fixes (Zero P1/P2)
-- [x] Fix `PolicySchedulerService.generateWeeklySummary()` — counts exclude soft-deleted
-- [x] Fix `AuditAspect.java` — use `findByIdAndIsDeletedFalse()` for old-state capture
-- [x] Fix `RateLimitingFilter.java` — parse `X-Forwarded-For` for real client IP
-- [x] Fix `frontend/nginx.conf` — add `X-Forwarded-For` header
-- [x] Fix `backend/Dockerfile` — add non-root USER directive
-- [x] Fix `GlobalExceptionHandler.java` — add SLF4J logging + NullPointerException handler
+### Phase 2 — Verbal Script Refinement
+- [x] Block A — RBAC in Action (0:00–0:20)
+- [x] Block B — Flyway Migrations (0:20–0:35)
+- [x] Block C — Audit Logging Live Demo (0:35–0:55)
+- [x] Block D — Rate Limiting & Input Sanitization (0:55–1:15)
+- [x] Block E — Closing Statement (1:15–1:30)
 
-### Phase 3 — Git
-- [x] Run `mvn clean test` to verify no regressions
-- [ ] Commit with: "Day 16 - Finalized README.md with architecture diagram and resolved remaining P2 bugs"
+### Phase 3 — Public Speaking Coach Output
+- [x] Tip 1: Active Voice + Outcome
+- [x] Tip 2: Replace "I think / maybe" with definitive statements
+- [x] Tip 3: Use contrast to emphasize value
+
+### Phase 4 — Q&A Prep
+- [x] Q1: Database schema changes in production without downtime?
+- [x] Q2: Why in-memory rate limiting over Redis-backed?
+- [x] Q3: What if audit log serialization fails mid-transaction?
+
+### Phase 5 — Transition Notes
+- [x] Handoff from Java Dev 1 (Auth) → You (RBAC/Audit)
+- [x] Handoff from You (Audit done) → Frontend / Next speaker
+
+### Phase 6 — Git
+- [ ] Commit with: "Day 17 - Added presentation slides, rehearsal script, and Q&A prep"
 - [ ] Push to update PR #3
-
-## Bug Fix Summary
-
-| # | File | Issue | Fix |
-|---|------|-------|-----|
-| P2-1 | `PolicySchedulerService.java` | `count()` included soft-deleted policies in weekly summary | Replaced with `countByIsDeletedFalse()` and `countByStatusAndIsDeletedFalse()` |
-| P2-2 | `AuditAspect.java` | `findById()` could audit an already-deleted policy | Replaced with `findByIdAndIsDeletedFalse()` |
-| P2-3 | `RateLimitingFilter.java` | `getRemoteAddr()` returned nginx proxy IP in Docker | Added `extractClientIp()` parsing `X-Forwarded-For` header |
-| P2-4 | `frontend/nginx.conf` | Missing `X-Forwarded-For` proxy header | Added `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` |
-| P2-5 | `backend/Dockerfile` | Missing non-root user (SECURITY.md claimed it existed) | Added `addgroup`, `adduser`, `COPY --chown`, `USER appuser` |
-| P2-6 | `GlobalExceptionHandler.java` | Silent failures, no NPE handler | Added SLF4J logger + `@ExceptionHandler(NullPointerException.class)` |
 
 ## Known Issues (P3 — documented, not fixed now)
 | # | Issue | Why deferred |
@@ -52,4 +50,3 @@
 | P3-1 | Frontend is a static placeholder (no actual CRUD UI) | Demo focuses on backend API; frontend will be shown as architecture-only |
 | P3-2 | AI service (`ai/app.py`) is a mock stub | AI integration is Q2 enhancement; out of scope for sprint |
 | P3-3 | Rate limiting is in-memory only (no Redis backed) | DOCUMENTED in SECURITY.md Issue #1; requires Redis integration post-sprint |
-
