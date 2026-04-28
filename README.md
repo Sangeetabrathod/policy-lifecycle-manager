@@ -172,6 +172,7 @@ mvn clean test
 | DELETE | `/api/policies/{id}` | ADMIN | Soft-delete (sets `is_deleted=true`) |
 | GET | `/api/policies/search?q={term}` | ADMIN, MANAGER, VIEWER | Search by name or holder |
 | GET | `/api/policies/stats` | ADMIN, MANAGER, VIEWER | Total & active counts |
+| GET | `/api/policies/export` | ADMIN, MANAGER, VIEWER | CSV export of all non-deleted policies |
 
 ### Swagger / OpenAPI
 - **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
@@ -222,7 +223,6 @@ mvn clean test
 - HTML/script metacharacters (`<`, `>`, `&`, `"`, `'`, `/`) are stripped to prevent XSS.
 - Search queries are sanitized before repository execution.
 
-### 4. Secret Management & OWASP ZAP Readiness
 - **Zero hardcoded secrets:** DB password and JWT secret are injected via environment variables (`${DB_PASSWORD}`, `${JWT_SECRET}`).
 - `.env` is excluded from Git via `.gitignore`.
 - Test secrets in `application-test.yml` are explicitly labeled `TEST-ONLY`.
@@ -312,6 +312,6 @@ policy-lifecycle-manager/
 
 Internal use only — Internship Tool-29 Project.
 
-**Document Owner:** Sangeeta Badiyappa Rathod (Java Developer 2)  
-**Last Updated:** 2026-05-05 (Day 16)
+
+
 
