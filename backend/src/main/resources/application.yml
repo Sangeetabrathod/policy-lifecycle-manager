@@ -3,9 +3,9 @@ spring:
     name: policy-lifecycle-manager
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/policydb}
+    url: ${DB_URL:jdbc:postgresql://policy-postgres:5432/policydb}
     username: ${DB_USER:policyuser}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:policypass}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -30,7 +30,7 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:policy-redis}
       port: ${REDIS_PORT:6379}
       timeout: 2000ms
 
@@ -55,15 +55,17 @@ server:
   port: 8080
 
 jwt:
-  secret: ${JWT_SECRET:}
+  secret: ${JWT_SECRET:your-super-secret-jwt-key-min-32-chars}
   expiration-ms: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 
 logging:
   level:
     com.internship.tool: INFO
     org.springframework.scheduling: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 management:
   health:

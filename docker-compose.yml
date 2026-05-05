@@ -1,6 +1,4 @@
-# Policy Lifecycle Manager - Docker Compose
-# ALL 5 services required for Demo Day
-# backend, frontend, ai-service, postgres, redis
+version: '3.8'
 
 services:
   postgres:
@@ -9,18 +7,19 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-policydb}
+      POSTGRES_USER: ${POSTGRES_USER:-policyuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-policypass}
     ports:
       - "9000:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-policyuser} -d ${POSTGRES_DB:-policydb}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
     networks:
       - policy-network
 
@@ -31,9 +30,10 @@ services:
       - "9001:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
     networks:
       - policy-network
 
@@ -48,25 +48,22 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      SPRING_FLYWAY_ENABLED: "true"
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      AI_SERVICE_URL: http://ai-service:5000
-      JWT_SECRET: ${JWT_SECRET}
+      DB_URL: jdbc:postgresql://policy-postgres:5432/${POSTGRES_DB:-policydb}
+      DB_USER: ${POSTGRES_USER:-policyuser}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-policypass}
+
+      REDIS_HOST: policy-redis
+      REDIS_PORT: 6379
+
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-min-32-chars}
+
+      AI_SERVICE_URL: http://policy-ai-service:5000
     ports:
       - "9003:8080"
     restart: unless-stopped
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget --spider -q http://localhost:8080/actuator/health || exit 1"
-        ]
-      interval: 10s
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 5
       start_period: 30s
@@ -76,20 +73,13 @@ services:
   frontend:
     build: ./frontend
     container_name: policy-frontend
-    env_file:
-      - .env
     depends_on:
       - backend
     environment:
       VITE_API_URL: http://localhost:9003
-      VITE_AI_SERVICE_URL: http://ai-service:5000
     ports:
       - "9002:80"
     restart: unless-stopped
-
-    # Frontend healthcheck removed for stability during demo
-    # because nginx/alpine may not have curl/wget/nc reliably
-
     networks:
       - policy-network
 
@@ -109,7 +99,7 @@ services:
           "-c",
           "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
         ]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 5
       start_period: 20s

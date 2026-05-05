@@ -25,7 +25,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
+import com.internship.tool.dto.PolicyStatsDTO;
 import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/policies")
@@ -115,15 +117,12 @@ public class PolicyController {
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'VIEWER')")
     @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getPolicyStats() {
-        PolicyService.PolicyStats stats = policyService.getPolicyStats();
-        Map<String, Object> response = new HashMap<>();
-        response.put("totalPolicies", stats.getTotalPolicies());
-        response.put("totalActivePolicies", stats.getTotalActivePolicies());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PolicyStatsDTO> getPolicyStats() {
+        return ResponseEntity.ok(policyService.getPolicyStats());
     }
 
     @Operation(summary = "Export policies to CSV", description = "Exports all non-deleted policies as a CSV file.")
+
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "CSV file exported successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")

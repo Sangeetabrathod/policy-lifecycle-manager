@@ -168,7 +168,7 @@ class PolicyServiceTest {
 
     @Test
     void testSearchPolicies_ReturnsMappedResponses() {
-        when(policyRepository.searchByNameOrHolder("john")).thenReturn(List.of(existingPolicy));
+        when(policyRepository.searchPolicies("john")).thenReturn(List.of(existingPolicy));
 
         List<PolicyResponse> results = policyService.searchPolicies("john");
 
@@ -176,16 +176,19 @@ class PolicyServiceTest {
         assertThat(results.get(0).getPolicyHolder()).isEqualTo("John Doe");
     }
 
+
     @Test
     void testGetPolicyStats_ReturnsCorrectCounts() {
-        when(policyRepository.countByIsDeletedFalse()).thenReturn(100L);
-        when(policyRepository.countByStatusAndIsDeletedFalse("Active")).thenReturn(80L);
+        when(policyRepository.countTotalPolicies()).thenReturn(100L);
+        when(policyRepository.countActivePolicies()).thenReturn(80L);
 
-        PolicyService.PolicyStats stats = policyService.getPolicyStats();
+        com.internship.tool.dto.PolicyStatsDTO stats = policyService.getPolicyStats();
 
-        assertThat(stats.getTotalPolicies()).isEqualTo(100L);
-        assertThat(stats.getTotalActivePolicies()).isEqualTo(80L);
+        assertThat(stats.totalPolicies()).isEqualTo(100L);
+        assertThat(stats.activePolicies()).isEqualTo(80L);
     }
+
+
 
     @Test
     void testGetAllActivePoliciesForExport_ReturnsMappedResponses() {

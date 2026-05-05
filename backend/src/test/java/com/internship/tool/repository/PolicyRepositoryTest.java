@@ -40,15 +40,16 @@ class PolicyRepositoryTest {
     }
 
     @Test
-    void testSearchByNameOrHolder() {
+    void testSearchPolicies() {
         policyRepository.save(buildPolicy("HomeGuard", "Home Insurance", "Active", "Alice Smith", LocalDate.now().plusMonths(12)));
         policyRepository.save(buildPolicy("LifeSecure", "Life Insurance", "Pending", "Bob Jones", LocalDate.now().plusMonths(24)));
         policyRepository.save(buildPolicy("HealthFirst", "Health Insurance", "Active", "Alice Smith", LocalDate.now().plusMonths(6)));
 
-        List<Policy> results = policyRepository.searchByNameOrHolder("alice");
+        List<Policy> results = policyRepository.searchPolicies("alice");
         assertThat(results).hasSize(2);
         assertThat(results).extracting(Policy::getPolicyName).contains("HomeGuard", "HealthFirst");
     }
+
 
     @Test
     void testFindByStatus() {

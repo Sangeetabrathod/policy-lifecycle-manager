@@ -17,8 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.internship.tool.dto.PolicyStatsDTO;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -32,14 +35,14 @@ public class PolicyService {
     @Autowired
     private EmailService emailService;
 
-    @Cacheable(value = "policies", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    
     @Transactional(readOnly = true)
     public Page<PolicyResponse> getAllPolicies(Pageable pageable) {
         return policyRepository.findByIsDeletedFalse(pageable)
                 .map(this::toResponse);
     }
 
-    @Cacheable(value = "policies", key = "#id")
+   
     @Transactional(readOnly = true)
     public PolicyResponse getPolicyById(Long id) {
         Policy policy = policyRepository.findByIdAndIsDeletedFalse(id)
@@ -95,20 +98,30 @@ public class PolicyService {
     }
 
     @Transactional(readOnly = true)
-    public List<PolicyResponse> searchPolicies(String query) {
-        return policyRepository.searchByNameOrHolder(InputSanitizer.sanitize(query))
+    public List<PolicyResponse> searchPolicies(String q) {
+        if (q == null || q.trim().isEmpty()) {
+            throw new ValidationException("Search query parameter 'q' is required and cannot be empty");
+        }
+        String sanitizedQuery = InputSanitizer.sanitize(q.trim());
+        logger.debug("Searching policies with sanitized query: {}", sanitizedQuery);
+        return policyRepository.searchPolicies(sanitizedQuery)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    @Cacheable(value = "policyStats")
-    @Transactional(readOnly = true)
-    public PolicyStats getPolicyStats() {
-        long total = policyRepository.countByIsDeletedFalse();
-        long active = policyRepository.countByStatusAndIsDeletedFalse("Active");
-        return new PolicyStats(total, active);
-    }
+
+    
+  @Transactional(readOnly = true)
+public PolicyStatsDTO getPolicyStats() {
+    Long total = Optional.ofNullable(policyRepository.countTotalPolicies()).orElse(0L);
+    Long active = Optional.ofNullable(policyRepository.countActivePolicies()).orElse(0L);
+
+    logger.debug("Policy stats - total: {}, active: {}", total, active);
+
+    return new PolicyStatsDTO(total, active);
+}
+
 
     @Transactional(readOnly = true)
     public List<PolicyResponse> getAllActivePoliciesForExport() {
@@ -154,22 +167,6 @@ public class PolicyService {
         return response;
     }
 
-    public static class PolicyStats {
-        private final long totalPolicies;
-        private final long totalActivePolicies;
-
-        public PolicyStats(long totalPolicies, long totalActivePolicies) {
-            this.totalPolicies = totalPolicies;
-            this.totalActivePolicies = totalActivePolicies;
-        }
-
-        public long getTotalPolicies() {
-            return totalPolicies;
-        }
-
-        public long getTotalActivePolicies() {
-            return totalActivePolicies;
-        }
-    }
 }
+
 

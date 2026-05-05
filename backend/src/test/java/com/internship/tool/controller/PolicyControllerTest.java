@@ -123,12 +123,13 @@ class PolicyControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void testSearchPolicies() throws Exception {
-        when(policyRepository.searchByNameOrHolder(any())).thenReturn(List.of(createPolicyEntity(1L, "Test")));
+        when(policyRepository.searchPolicies(any())).thenReturn(List.of(createPolicyEntity(1L, "Test")));
 
         mockMvc.perform(get("/api/policies/search").param("q", "test"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
     }
+
 
     @Test
     @WithMockUser(roles = "ADMIN")
