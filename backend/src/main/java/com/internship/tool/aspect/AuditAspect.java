@@ -41,8 +41,12 @@ public class AuditAspect {
 
         String action = null;
         Long entityId = null;
-        String oldValue = null;
-        String newValue = null;
+        com.fasterxml.jackson.databind.JsonNode oldValue = null;
+        com.fasterxml.jackson.databind.JsonNode newValue = null;
+
+
+
+
 
         // Capture old state before proceeding
         if ("updatePolicy".equals(methodName) && args.length > 0 && args[0] instanceof Long id) {
@@ -86,6 +90,7 @@ public class AuditAspect {
         String changedBy = getCurrentUsername();
 
         AuditLog log = new AuditLog();
+
         log.setEntityName("Policy");
         log.setEntityId(entityId);
         log.setAction(action);
@@ -93,6 +98,9 @@ public class AuditAspect {
         log.setChangeDate(LocalDateTime.now());
         log.setOldValue(oldValue);
         log.setNewValue(newValue);
+
+
+
 
         auditRepository.save(log);
         logger.info("Audit log saved: action={}, entityId={}, changedBy={}", action, entityId, changedBy);
@@ -105,19 +113,26 @@ public class AuditAspect {
         return policyRepository.findById(id).orElse(null);
     }
 
-    private String serializeObject(Object obj) {
+    private com.fasterxml.jackson.databind.JsonNode serializeObject(Object obj) {
+
         if (obj == null) {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(obj);
+            return objectMapper.valueToTree(obj);
         } catch (Exception e) {
             logger.warn("Failed to serialize object for audit log", e);
-            return "{\"error\": \"serialization_failed\"}";
+            return null;
         }
     }
 
+
+
+
+
+
     private Long extractIdFromResult(Object result) {
+
         if (result instanceof ResponseEntity<?> response && response.getBody() instanceof PolicyResponse dto) {
             return dto.getId();
         }

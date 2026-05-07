@@ -1,9 +1,13 @@
 package com.internship.tool.entity;
 
+
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "audit_log")
@@ -30,10 +34,18 @@ public class AuditLog {
     private LocalDateTime changeDate;
 
     @Column(name = "old_value", columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String oldValue;
 
     @Column(name = "new_value", columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String newValue;
+
+
+
+
+
+
 
     public AuditLog() {
     }
@@ -101,4 +113,17 @@ public class AuditLog {
     public void setNewValue(String newValue) {
         this.newValue = newValue;
     }
+
+    // --- Backward-compatible overloads for existing tests/usage ---
+    public void setOldValue(com.fasterxml.jackson.databind.JsonNode oldValue) {
+        this.oldValue = oldValue == null ? null : oldValue.toString();
+    }
+
+    public void setNewValue(com.fasterxml.jackson.databind.JsonNode newValue) {
+        this.newValue = newValue == null ? null : newValue.toString();
+    }
+
+
+
+
 }
